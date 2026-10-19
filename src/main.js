@@ -149,12 +149,82 @@ const icon = (name, size = 18) => {
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] ?? paths.arrow}</svg>`
 }
 
+const roadmapMilestones = [
+  {
+    period: '2025 — PRESENT',
+    isCurrent: true,
+    role: 'Dev Lead · Remote Freelancer',
+    company: 'Global Clients & Publishers (Remote)',
+    summary: 'Directing a 5-member game dev squad, building scalable hyper-casual & hybrid casual architectures from concept to store release.',
+    highlights: [
+      'Lead technical architecture and agile sprint workflows for a 5-developer remote team.',
+      'Deliver custom hyper-casual and hybrid games tailored to client specifications and retention metrics.',
+      'Deconstruct complex GDDs into modular task pipelines and maintain high code quality standards.',
+      'Manage complete build, signing, and submission pipelines for iOS App Store & Google Play.'
+    ],
+    skills: ['Unity 3D / 2D', 'C#', 'Cocos Creator', 'Team Leadership', 'iOS & Android Release', 'Rapid Prototyping']
+  },
+  {
+    period: '2020 — 2025',
+    role: 'Senior Unity Developer',
+    company: 'GearGames Vietnam · US Market',
+    summary: 'Lead client-side development on flagship puzzle and strategy games for the US market, spearheading performance and LiveOps.',
+    highlights: [
+      'Engineered core game systems for Match & Score (football match-3), Arcane Rush, and Animal Island.',
+      'Developed modular in-game economy, inventory, daily quests, dynamic shop, and battle-pass features.',
+      'Executed intensive memory profiling, draw-call batching, and GPU/CPU optimization ensuring stable 60 FPS across mid-to-low tier devices.',
+      'Mentored and trained junior game developers and interns on Unity architecture and clean code.'
+    ],
+    skills: ['Unity 3D', 'C#', 'Match-3 Systems', 'LiveOps Architecture', 'Draw-Call Batching', 'Memory Profiling', 'Mentorship']
+  },
+  {
+    period: '2018 — 2020',
+    role: 'Middle Unity Developer',
+    company: 'BAP Software · Japan & Global Publishers',
+    summary: 'Co-developed global chart-toppers with top publishers including Amanotes and Voodoo, and built full action titles.',
+    highlights: [
+      'Co-developed hit music rhythm games with Amanotes (Music Race, Tube Frenzy) and hyper-casual prototypes for Voodoo.',
+      'Developed Kick The Man (action platformer) with dynamic platform physics, skill upgrade trees, and responsive ragdoll mechanics.',
+      'Implemented custom visual shaders, particle burst feedback, and rhythm-beat synchronization systems.'
+    ],
+    skills: ['Unity', 'C#', 'Amanotes & Voodoo', 'Music & Rhythm Sync', 'Physics Platformer', 'Shader Effects']
+  },
+  {
+    period: '2017 — 2018',
+    role: 'Junior Unity Developer',
+    company: 'Funkoi Studio · North American Market',
+    summary: 'Maintained and enhanced educational music applications catering to the North American children’s market.',
+    highlights: [
+      'Resolved critical bugs and maintained interactive educational music applications for Canadian children.',
+      'Refactored UI touch navigation to ensure accessible, responsive experiences on tablet and mobile viewports.',
+      'Collaborated closely with designers and audio engineers to optimize audio-visual cue responsiveness.'
+    ],
+    skills: ['Unity 2D', 'Audio Systems', 'Touch Input UI', 'Performance Maintenance', 'Kid-friendly UX']
+  },
+  {
+    period: '2015 — 2017',
+    role: 'Junior Unity Developer',
+    company: 'Monstarlab Vietnam · Japanese Market',
+    summary: 'Began professional game engineering career developing high-octane mobile titles for Japanese & global players.',
+    highlights: [
+      'Key developer on flagship hit Riot Road Fight (1M - 5M+ downloads) and Riot War Highway (500K - 1M+ downloads).',
+      'Engineered vehicular combat, weapon recoil, enemy boss AI attack state machines, and dynamic road obstacle spawning.',
+      'Integrated in-app purchases (IAP), reward ads, telemetry analytics, and multi-resolution canvas scaling.'
+    ],
+    skills: ['Unity', 'C#', '1M - 5M+ Downloads', 'Vehicular Combat', 'Boss AI Logic', 'Monetization & Ads']
+  }
+]
+
+function roadmapDialogMarkup() {
+  return `<dialog class="roadmap-dialog" id="roadmap-dialog" aria-labelledby="roadmap-dialog-title"><div class="roadmap-dialog-header"><div><p class="eyebrow">CAREER JOURNEY · 2015 — 2026</p><h2 id="roadmap-dialog-title">Professional Roadmap</h2></div><div class="roadmap-dialog-actions"><span class="roadmap-stats-pill">9+ Years · 5 Studios · 21+ Games</span><button class="roadmap-dialog-close" type="button" data-close-roadmap aria-label="Close roadmap">${icon('close', 20)}</button></div></div><div class="roadmap-dialog-viewer"><div class="roadmap-timeline">${roadmapMilestones.map((item) => `<div class="roadmap-item${item.isCurrent ? ' is-current' : ''}"><div class="roadmap-node" aria-hidden="true"></div><div class="roadmap-card"><div class="roadmap-card-header"><span class="roadmap-period">${escapeHtml(item.period)}</span>${item.isCurrent ? '<span class="roadmap-stats-pill" style="font-size: 10px; padding: 3px 9px;">ACTIVE ROLE</span>' : ''}</div><h3 class="roadmap-role">${escapeHtml(item.role)}</h3><p class="roadmap-company">${escapeHtml(item.company)}</p><p class="roadmap-summary">${escapeHtml(item.summary)}</p><ul class="roadmap-highlights">${item.highlights.map((h) => `<li>${escapeHtml(h)}</li>`).join('')}</ul><div class="roadmap-skills">${item.skills.map((s) => `<span>${escapeHtml(s)}</span>`).join('')}</div></div></div>`).join('')}</div><div class="roadmap-footer-cta"><p>Want to explore gameplay captures &amp; video demos of these projects?</p><a href="#section/work" data-close-roadmap>Explore Games Showcase ${icon('arrow', 14)}</a></div></div></dialog>`
+}
+
 function header() {
-  return `<header class="site-header"><a class="brand" href="#/" aria-label="Tri Truong home"><span>TRI TRUONG</span><small>GAME DEVELOPER</small></a><nav aria-label="Main navigation"><a href="#section/work">Work</a><a href="#section/about">About</a><button class="nav-cv-button" type="button" data-open-cv aria-haspopup="dialog" aria-controls="cv-dialog">Experience</button></nav><a class="header-cta" href="mailto:truongvantri01@gmail.com">Let’s talk ${icon('arrow', 15)}</a></header>`
+  return `<header class="site-header"><a class="brand" href="#/" aria-label="Tri Truong home"><span>TRI TRUONG</span><small>GAME DEVELOPER</small></a><nav aria-label="Main navigation"><button class="nav-work-button" type="button" data-open-roadmap aria-haspopup="dialog" aria-controls="roadmap-dialog">Work</button><a href="#section/about">About</a><button class="nav-cv-button" type="button" data-open-cv aria-haspopup="dialog" aria-controls="cv-dialog">Experience</button></nav><a class="header-cta" href="mailto:truongvantri01@gmail.com">Let’s talk ${icon('arrow', 15)}</a></header>`
 }
 
 function footer() {
-  return `<footer class="site-footer"><span>BASED IN VIETNAM · OPEN TO GREAT GAME TEAMS</span><a href="mailto:truongvantri01@gmail.com">EMAIL ${icon('arrow', 14)}</a></footer><dialog class="cv-dialog" id="cv-dialog" aria-labelledby="cv-dialog-title"><div class="cv-dialog-header"><div><p class="eyebrow">EXPERIENCE</p><h2 id="cv-dialog-title">Tri Truong · CV</h2></div><div class="cv-dialog-actions"><a href="${asset('/Tri-Truong-CV.pdf')}" target="_blank" rel="noreferrer">Open PDF ${icon('arrow', 14)}</a><button class="cv-dialog-close" type="button" data-close-cv aria-label="Close CV">${icon('close', 20)}</button></div></div><div class="cv-dialog-viewer" aria-label="CV pages"><img src="${asset('/cv/page-1.webp')}" alt="CV page 1 of 3"><img src="${asset('/cv/page-2.webp')}" alt="CV page 2 of 3" loading="lazy"><img src="${asset('/cv/page-3.webp')}" alt="CV page 3 of 3" loading="lazy"></div></dialog>`
+  return `<footer class="site-footer"><span>BASED IN VIETNAM · OPEN TO GREAT GAME TEAMS</span><a href="mailto:truongvantri01@gmail.com">EMAIL ${icon('arrow', 14)}</a></footer><dialog class="cv-dialog" id="cv-dialog" aria-labelledby="cv-dialog-title"><div class="cv-dialog-header"><div><p class="eyebrow">EXPERIENCE</p><h2 id="cv-dialog-title">Tri Truong · CV</h2></div><div class="cv-dialog-actions"><a href="${asset('/Tri-Truong-CV.pdf')}" target="_blank" rel="noreferrer">Open PDF ${icon('arrow', 14)}</a><button class="cv-dialog-close" type="button" data-close-cv aria-label="Close CV">${icon('close', 20)}</button></div></div><div class="cv-dialog-viewer" aria-label="CV pages"><img src="${asset('/cv/page-1.webp')}" alt="CV page 1 of 3"><img src="${asset('/cv/page-2.webp')}" alt="CV page 2 of 3" loading="lazy"><img src="${asset('/cv/page-3.webp')}" alt="CV page 3 of 3" loading="lazy"></div></dialog>${roadmapDialogMarkup()}`
 }
 
 let activePortraitCount = 6
@@ -644,12 +714,22 @@ window.addEventListener('hashchange', () => {
 })
 window.addEventListener('popstate', render)
 document.addEventListener('click', (event) => {
-  const dialog = document.querySelector('#cv-dialog')
-  if (!dialog) return
-  if (event.target.closest('[data-open-cv]')) {
-    if (!dialog.open) dialog.showModal()
-  } else if (event.target.closest('[data-close-cv]') || event.target === dialog) {
-    dialog.close()
+  const cvDialog = document.querySelector('#cv-dialog')
+  if (cvDialog) {
+    if (event.target.closest('[data-open-cv]')) {
+      if (!cvDialog.open) cvDialog.showModal()
+    } else if (event.target.closest('[data-close-cv]') || event.target === cvDialog) {
+      cvDialog.close()
+    }
+  }
+
+  const roadmapDialog = document.querySelector('#roadmap-dialog')
+  if (roadmapDialog) {
+    if (event.target.closest('[data-open-roadmap]')) {
+      if (!roadmapDialog.open) roadmapDialog.showModal()
+    } else if (event.target.closest('[data-close-roadmap]') || event.target === roadmapDialog) {
+      roadmapDialog.close()
+    }
   }
 })
 setupParallax()
