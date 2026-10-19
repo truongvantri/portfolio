@@ -145,6 +145,9 @@ const icon = (name, size = 18) => {
     youtube: '<path d="M21.6 7.2a2.9 2.9 0 0 0-2-2C17.8 4.7 12 4.7 12 4.7s-5.8 0-7.6.5a2.9 2.9 0 0 0-2 2A30 30 0 0 0 2 12a30 30 0 0 0 .4 4.8 2.9 2.9 0 0 0 2 2c1.8.5 7.6.5 7.6.5s5.8 0 7.6-.5a2.9 2.9 0 0 0 2-2A30 30 0 0 0 22 12a30 30 0 0 0-.4-4.8Z" fill="currentColor" stroke="none"/><path d="m10 15.5 5-3.5-5-3.5z" fill="#17151d" stroke="none"/>',
     close: '<path d="m18 6-12 12M6 6l12 12"/>',
     mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+    roadmap: '<circle cx="6" cy="19" r="2.5"/><path d="M8.5 19H12a5 5 0 0 0 5-5V9"/><circle cx="17" cy="5" r="2.5"/>',
+    user: '<circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>',
+    document: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
   }
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] ?? paths.arrow}</svg>`
 }
@@ -220,7 +223,7 @@ function roadmapDialogMarkup() {
 }
 
 function header() {
-  return `<header class="site-header"><a class="brand" href="#/" aria-label="Tri Truong home"><span>TRI TRUONG</span><small>GAME DEVELOPER</small></a><nav aria-label="Main navigation"><button class="nav-work-button" type="button" data-open-roadmap aria-haspopup="dialog" aria-controls="roadmap-dialog">Work</button><a href="#section/about">About</a><button class="nav-cv-button" type="button" data-open-cv aria-haspopup="dialog" aria-controls="cv-dialog">Experience</button></nav><a class="header-cta" href="mailto:truongvantri01@gmail.com">Let’s talk ${icon('arrow', 15)}</a></header>`
+  return `<header class="site-header"><a class="brand" href="#/" aria-label="Tri Truong home"><span>TRI TRUONG</span><small>GAME DEVELOPER</small></a><nav class="site-nav" aria-label="Main navigation"><button class="nav-button nav-work-button" type="button" data-open-roadmap aria-haspopup="dialog" aria-controls="roadmap-dialog"><span class="nav-pulse-dot" aria-hidden="true"></span><span class="nav-label">Work</span><span class="nav-tag nav-tag-roadmap">Roadmap</span></button><a class="nav-button nav-about-button" href="#section/about">${icon('user', 14)}<span class="nav-label">About</span></a><button class="nav-button nav-cv-button" type="button" data-open-cv aria-haspopup="dialog" aria-controls="cv-dialog">${icon('document', 14)}<span class="nav-label">Experience</span><span class="nav-tag nav-tag-cv">CV</span></button></nav><a class="header-cta" href="mailto:truongvantri01@gmail.com">Let’s talk ${icon('arrow', 15)}</a></header>`
 }
 
 function footer() {
