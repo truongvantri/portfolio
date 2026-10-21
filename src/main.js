@@ -240,12 +240,15 @@ const workFilters = {
   featuredOnly: false,
 }
 
+const getHeroGames = () => [
+  games.find((g) => g.slug === 'bow-clash'),
+  games.find((g) => g.slug === 'match-and-score'),
+  ...games.filter((g) => g.slug !== 'bow-clash' && g.slug !== 'match-and-score')
+].filter((game) => Boolean(game && game.coverImage && game.media?.previewVideo))
+
 function renderHome() {
   document.title = 'Tri Truong — Senior Unity Developer'
-  const heroFeaturedSlugs = ['bow-clash', 'flick-goalz', 'arena-blitz', 'match-and-score']
-  const heroFeatured = heroFeaturedSlugs
-    .map((slug) => games.find((game) => game.slug === slug))
-    .filter((game) => game?.coverImage && game?.media?.previewVideo)
+  const heroFeatured = getHeroGames()
   const initialHero = heroFeatured[0] ?? games[0]
   const initialVideo = initialHero.media?.previewVideo ? asset(initialHero.media.previewVideo) : ''
 
@@ -387,9 +390,7 @@ function setupHeroSlideshow() {
   const slides = link?.querySelectorAll('.hero-slide')
   if (!link || slides?.length !== 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
-  const featured = ['bow-clash', 'flick-goalz', 'arena-blitz', 'match-and-score']
-    .map((slug) => games.find((game) => game.slug === slug))
-    .filter((game) => game?.coverImage && game?.media?.previewVideo)
+  const featured = getHeroGames()
   if (featured.length < 2) return
 
   // Preload all cover images upfront so switches are immediate without waiting
