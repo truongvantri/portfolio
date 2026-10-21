@@ -128,6 +128,8 @@ for (const game of games) {
   game.media = captureBySlug.get(game.captureSlug)
   game.images = (game.media?.images ?? []).map(asset)
   game.isPortrait = portraitGameSlugs.has(game.slug)
+  game.showcaseRole = game.contribution?.length ? 'Systems & LiveOps' : 'Gameplay Development'
+  game.platform = 'Mobile'
   game.coverImage = asset(game.media?.splashImage ?? game.media?.coverImage ?? game.images[0])
 }
 const orderedGames = [...games.filter((game) => !game.isPortrait), ...games.filter((game) => game.isPortrait)]
@@ -230,15 +232,23 @@ function footer() {
   return `<footer class="site-footer"><span>BASED IN VIETNAM · OPEN TO GREAT GAME TEAMS</span><a href="mailto:truongvantri01@gmail.com">EMAIL ${icon('arrow', 14)}</a></footer><dialog class="cv-dialog" id="cv-dialog" aria-labelledby="cv-dialog-title"><div class="cv-dialog-header"><div><p class="eyebrow">EXPERIENCE</p><h2 id="cv-dialog-title">Tri Truong · CV</h2></div><div class="cv-dialog-actions"><a href="${asset('/Tri-Truong-CV.pdf')}" target="_blank" rel="noreferrer">Open PDF ${icon('arrow', 14)}</a><button class="cv-dialog-close" type="button" data-close-cv aria-label="Close CV">${icon('close', 20)}</button></div></div><div class="cv-dialog-viewer" aria-label="CV pages"><img src="${asset('/cv/page-1.webp')}" alt="CV page 1 of 3"><img src="${asset('/cv/page-2.webp')}" alt="CV page 2 of 3" loading="lazy"><img src="${asset('/cv/page-3.webp')}" alt="CV page 3 of 3" loading="lazy"></div></dialog>${roadmapDialogMarkup()}`
 }
 
-let activePortraitCount = 6
+const workFilters = {
+  genre: 'all',
+  role: 'all',
+  platform: 'all',
+  format: 'all',
+  featuredOnly: false,
+}
 
 function renderHome() {
   document.title = 'Tri Truong — Senior Unity Developer'
-  const landscapeGames = orderedGames.filter((game) => !game.isPortrait)
-  const portraitGames = orderedGames.filter((game) => game.isPortrait)
-  const initialLandscape = landscapeGames
-  const initialPortrait = portraitGames.slice(0, activePortraitCount)
-  const allLoaded = activePortraitCount >= portraitGames.length
+  const heroFeaturedSlugs = ['bow-clash', 'flick-goalz', 'arena-blitz', 'match-and-score']
+  const heroFeatured = heroFeaturedSlugs
+    .map((slug) => games.find((game) => game.slug === slug))
+    .filter((game) => game?.coverImage && game?.media?.previewVideo)
+  const initialHero = heroFeatured[0] ?? games[0]
+  const initialVideo = initialHero.media?.previewVideo ? asset(initialHero.media.previewVideo) : ''
+
   app.innerHTML = `${header()}
     <main class="home-page">
       <section class="home-hero page-wrap" aria-labelledby="hero-title">
@@ -251,15 +261,47 @@ function renderHome() {
           <p class="hero-stack">UNITY <span>/</span> C# <span>/</span> MOBILE <span>/</span> LIVE OPS</p>
         </div>
         <div class="hero-art" aria-label="Featured game screenshots">
-          <a class="hero-art-main" href="#/games/bow-clash"><img class="hero-slide is-active" src="${games.find((game) => game.slug === 'bow-clash')?.coverImage}" alt="Bow Clash gameplay screenshot" fetchpriority="high"><img class="hero-slide" alt="" aria-hidden="true"><span class="hero-art-caption"><small>GAMEPLAY SYSTEMS</small><strong>Action, strategy &amp; play</strong><em class="hero-slide-count" aria-hidden="true">01 / 03</em></span></a>
-          <a class="hero-art-inset" href="#/games/match-and-score" aria-label="View Match and Score"><img src="${games[0].coverImage}" alt="Match &amp; Score game artwork"></a>
+          <a class="hero-art-main" href="#/games/${initialHero.slug}"><img class="hero-slide is-active" src="${initialHero.coverImage}" alt="${initialHero.title} gameplay screenshot" fetchpriority="high"><img class="hero-slide" alt="" aria-hidden="true"><span class="hero-art-caption"><small>GAMEPLAY SYSTEMS</small><strong>${initialHero.title}</strong><em class="hero-slide-count" aria-hidden="true">01 / ${String(heroFeatured.length).padStart(2, '0')}</em></span></a>
+          <a class="hero-art-inset" href="#/games/${initialHero.slug}" aria-label="Watch ${initialHero.title} gameplay preview">
+            <img class="hero-inset-cover" src="${initialHero.coverImage}" alt="" aria-hidden="true">
+            <video class="hero-inset-video is-active" src="${initialVideo}" muted playsinline loop autoplay preload="auto"></video>
+            <video class="hero-inset-video" muted playsinline loop preload="none"></video>
+            <span class="hero-inset-tag"><span class="hero-inset-dot"></span><span>GAMEPLAY</span></span>
+          </a>
         </div>
         <div class="hero-stats" aria-label="Career highlights"><div><strong>9+</strong><span>YEARS EXPERIENCE</span></div><div><strong>${games.length}</strong><span>GAME CAPTURES</span></div><div><strong>UNITY</strong><span>MOBILE · VR · LIVE OPS</span></div></div>
       </section>
 
       <section class="work-section page-wrap" id="work" aria-labelledby="work-title">
-        <div class="section-heading"><div><p class="eyebrow">SELECTED GAMEPLAY</p><h2 id="work-title">Games across genres and platforms.</h2></div><button class="text-link${allLoaded ? ' is-completed' : ''}" id="view-all" type="button" aria-controls="game-grid"><span id="view-all-text">${allLoaded ? `All ${games.length} games` : `Showing ${initialLandscape.length + initialPortrait.length} of ${games.length} games`}</span>${icon('down', 14)}</button></div>
-        <div class="game-collections" id="game-grid">${gameGroupsMarkup(initialLandscape, initialPortrait, portraitGames.length)}</div>
+        <div class="section-heading"><div><p class="eyebrow">SELECTED GAMEPLAY</p><h2 id="work-title">Games across genres and platforms.</h2></div><p class="filter-result-count" id="filter-result-count" aria-live="polite"></p></div>
+        <div class="filter-toolbar" aria-label="Filter game showcase">${filterControlsMarkup()}</div>
+        <div class="game-collections" id="game-grid"></div>
+      </section>
+
+      <section class="engine-section page-wrap" aria-labelledby="engine-title">
+        <div class="engine-heading"><div><p class="eyebrow">ENGINE &amp; FRAMEWORK</p><h2 id="engine-title">Tools behind the games.</h2></div><p>Production-focused experience across gameplay, scalable systems, and mobile delivery.</p></div>
+        <div class="engine-grid">
+          <article class="engine-card">
+            <div class="engine-logo engine-logo-unity" aria-hidden="true"><span>U</span><img src="https://cdn.simpleicons.org/unity/FFFFFF" alt=""></div>
+            <div class="engine-copy"><p>GAME ENGINE</p><h3>Unity</h3><span>2D / 3D · C# · Mobile</span></div>
+            <div class="engine-years"><strong>9+</strong><span>YEARS</span></div>
+          </article>
+          <article class="engine-card">
+            <div class="engine-logo engine-logo-cocos" aria-hidden="true"><span>C</span><img src="https://cdn.simpleicons.org/cocos/FFFFFF" alt=""></div>
+            <div class="engine-copy"><p>GAME ENGINE</p><h3>Cocos Creator</h3><span>Rapid prototyping · Hybrid casual</span></div>
+            <div class="engine-years"><strong>1+</strong><span>YEAR</span></div>
+          </article>
+          <article class="engine-card">
+            <div class="engine-logo engine-logo-libgdx" aria-hidden="true"><span>L</span><img src="${asset('/engines/libgdx-logo.png')}" alt=""></div>
+            <div class="engine-copy"><p>GAME FRAMEWORK</p><h3>LibGDX</h3><span>Cross-platform · 2D game development</span></div>
+            <div class="engine-years"><strong>2+</strong><span>YEARS</span></div>
+          </article>
+          <article class="engine-card">
+            <div class="engine-logo engine-logo-java" aria-hidden="true"><span>J</span><img src="https://cdn.simpleicons.org/openjdk/FFFFFF" alt=""></div>
+            <div class="engine-copy"><p>LANGUAGE</p><h3>Java</h3><span>Object-oriented development · LibGDX</span></div>
+            <div class="engine-years"><strong>1+</strong><span>YEAR</span></div>
+          </article>
+        </div>
       </section>
 
       <section class="about-section page-wrap" id="about">
@@ -274,83 +316,70 @@ function renderHome() {
   setupCardTilt()
   setupScrollReveals()
   setupHeroSlideshow()
-  setupInfiniteScroll(landscapeGames, portraitGames)
+  renderFilteredGames()
+  setupWorkFilters()
 }
 
-function gameGroupsMarkup(landscapeGames, portraitGames, totalPortraits = portraitGames.length) {
-  const hasMore = portraitGames.length < totalPortraits
-  return `<section class="game-group" aria-label="Landscape games"><p class="game-format-label">LANDSCAPE · ${landscapeGames.length}</p><div class="game-grid game-grid-landscape">${landscapeGames.map((game) => gameCard(game)).join('')}</div></section><section class="game-group" aria-label="Portrait games"><p class="game-format-label">PORTRAIT · ${portraitGames.length}${hasMore ? ` OF ${totalPortraits}` : ''}</p><div class="game-grid game-grid-portrait">${portraitGames.map((game) => gameCard(game)).join('')}</div>${hasMore ? '<div class="scroll-sentinel" id="portrait-scroll-sentinel" aria-hidden="true"></div>' : ''}</section>`
+function filterControlsMarkup() {
+  const genres = [...new Set(games.flatMap((game) => game.category.split(' · ')))].sort()
+  const select = (label, key, options) => `<label class="filter-select"><span>${label}</span><select data-filter-key="${key}" aria-label="Filter by ${label.toLowerCase()}">${options.map(([value, text]) => `<option value="${escapeHtml(value)}"${workFilters[key] === value ? ' selected' : ''}>${escapeHtml(text)}</option>`).join('')}</select></label>`
+  const hasActiveFilters = workFilters.genre !== 'all' || workFilters.role !== 'all' || workFilters.platform !== 'all' || workFilters.format !== 'all' || workFilters.featuredOnly
+  return `<div class="filter-compact">${select('Genre', 'genre', [['all', 'All genres'], ...genres.map((genre) => [genre, genre])])}${select('Role', 'role', [['all', 'All roles'], ['Gameplay Development', 'Gameplay'], ['Systems & LiveOps', 'Systems & LiveOps']])}${select('Platform', 'platform', [['all', 'All platforms'], ['Mobile', 'Mobile']])}${select('Format', 'format', [['all', 'All formats'], ['landscape', 'Landscape'], ['portrait', 'Portrait']])}<button class="filter-chip filter-chip-featured${workFilters.featuredOnly ? ' is-active' : ''}" type="button" data-filter-key="featuredOnly" aria-pressed="${workFilters.featuredOnly}">Featured</button>${hasActiveFilters ? '<button class="filter-reset" type="button" data-clear-filters>Reset</button>' : ''}</div>`
 }
 
-function setupInfiniteScroll(landscapeGames, portraitGames) {
-  const sentinel = document.querySelector('#portrait-scroll-sentinel')
-  const portraitGrid = document.querySelector('.game-grid-portrait')
-  const portraitLabel = document.querySelector('.game-group[aria-label="Portrait games"] .game-format-label')
-  const viewAllBtn = document.querySelector('#view-all')
-  const viewAllText = document.querySelector('#view-all-text')
-  const totalPortraits = portraitGames.length
-
-  const updateStatus = () => {
-    if (portraitLabel) {
-      portraitLabel.textContent = activePortraitCount < totalPortraits
-        ? `PORTRAIT · ${activePortraitCount} OF ${totalPortraits}`
-        : `PORTRAIT · ${totalPortraits}`
-    }
-    if (viewAllText) {
-      const totalShown = landscapeGames.length + activePortraitCount
-      if (activePortraitCount < totalPortraits) {
-        viewAllText.textContent = `Showing ${totalShown} of ${games.length} games`
-      } else {
-        viewAllText.textContent = `All ${games.length} games`
-        viewAllBtn?.classList.add('is-completed')
-      }
-    }
-  }
-
-  const expandBatch = (batchSize = 6) => {
-    if (activePortraitCount >= totalPortraits) return
-    const nextBatch = portraitGames.slice(activePortraitCount, activePortraitCount + batchSize)
-    if (!nextBatch.length) return
-
-    const markup = nextBatch.map((game) => gameCard(game)).join('')
-    portraitGrid?.insertAdjacentHTML('beforeend', markup)
-    activePortraitCount += nextBatch.length
-
-    setupCardVideoPreviews(portraitGrid)
-    setupCardTilt(portraitGrid)
-    setupScrollReveals(portraitGrid)
-    updateStatus()
-
-    if (activePortraitCount >= totalPortraits) {
-      observer?.disconnect()
-      sentinel?.remove()
-    }
-  }
-
-  let observer = null
-  if (sentinel && 'IntersectionObserver' in window) {
-    observer = new IntersectionObserver((entries) => {
-      if (entries[0]?.isIntersecting) {
-        expandBatch(6)
-      }
-    }, {
-      rootMargin: '260px 0px 260px 0px',
-      threshold: 0.01,
-    })
-    observer.observe(sentinel)
-  }
-
-  viewAllBtn?.addEventListener('click', () => {
-    while (activePortraitCount < totalPortraits) {
-      expandBatch(totalPortraits)
-    }
+function filteredGames() {
+  return orderedGames.filter((game) => {
+    const hasGenre = workFilters.genre === 'all' || game.category.split(' · ').includes(workFilters.genre)
+    const hasRole = workFilters.role === 'all' || game.showcaseRole === workFilters.role
+    const hasPlatform = workFilters.platform === 'all' || game.platform === workFilters.platform
+    const hasFormat = workFilters.format === 'all' || (workFilters.format === 'portrait' ? game.isPortrait : !game.isPortrait)
+    return hasGenre && hasRole && hasPlatform && hasFormat && (!workFilters.featuredOnly || game.featured)
   })
+}
 
-  window.expandAllGames = () => {
-    while (activePortraitCount < totalPortraits) {
-      expandBatch(totalPortraits)
-    }
+function gameGroupsMarkup(filtered) {
+  const landscapeGames = filtered.filter((game) => !game.isPortrait)
+  const portraitGames = filtered.filter((game) => game.isPortrait)
+  if (!filtered.length) return `<div class="empty-filter-state"><strong>No games match these filters.</strong><span>Try clearing one or more filters to explore the full showcase.</span><button type="button" class="text-link" data-clear-filters>Clear all filters ${icon('arrow', 14)}</button></div>`
+  return `${landscapeGames.length ? `<section class="game-group" aria-label="Landscape games"><p class="game-format-label">LANDSCAPE · ${landscapeGames.length}</p><div class="game-grid game-grid-landscape">${landscapeGames.map((game) => gameCard(game)).join('')}</div></section>` : ''}${portraitGames.length ? `<section class="game-group" aria-label="Portrait games"><p class="game-format-label">PORTRAIT · ${portraitGames.length}</p><div class="game-grid game-grid-portrait">${portraitGames.map((game) => gameCard(game)).join('')}</div></section>` : ''}`
+}
+
+function renderFilteredGames() {
+  const filtered = filteredGames()
+  const grid = document.querySelector('#game-grid')
+  const count = document.querySelector('#filter-result-count')
+  if (grid) grid.innerHTML = gameGroupsMarkup(filtered)
+  if (count) count.textContent = `${filtered.length} of ${games.length} projects`
+  setupCardVideoPreviews(grid ?? document)
+  setupCardTilt(grid ?? document)
+  setupScrollReveals(grid ?? document)
+}
+
+function setupWorkFilters() {
+  const toolbar = document.querySelector('.filter-toolbar')
+  toolbar?.addEventListener('change', (event) => {
+    const control = event.target.closest('select[data-filter-key]')
+    if (!control) return
+    workFilters[control.dataset.filterKey] = control.value
+    toolbar.innerHTML = filterControlsMarkup()
+    renderFilteredGames()
+  })
+  toolbar?.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-filter-key]')
+    if (!button) return
+    const key = button.dataset.filterKey
+    if (key !== 'featuredOnly') return
+    workFilters.featuredOnly = !workFilters.featuredOnly
+    toolbar.innerHTML = filterControlsMarkup()
+    renderFilteredGames()
+  })
+  const clearFilters = () => {
+    Object.assign(workFilters, { genre: 'all', role: 'all', platform: 'all', format: 'all', featuredOnly: false })
+    toolbar.innerHTML = filterControlsMarkup()
+    renderFilteredGames()
   }
+  toolbar?.addEventListener('click', (event) => { if (event.target.closest('[data-clear-filters]')) clearFilters() })
+  document.querySelector('#game-grid')?.addEventListener('click', (event) => { if (event.target.closest('[data-clear-filters]')) clearFilters() })
 }
 
 function setupHeroSlideshow() {
@@ -358,15 +387,28 @@ function setupHeroSlideshow() {
   const slides = link?.querySelectorAll('.hero-slide')
   if (!link || slides?.length !== 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
-  const featured = ['bow-clash', 'flick-goalz', 'arena-blitz']
+  const featured = ['bow-clash', 'flick-goalz', 'arena-blitz', 'match-and-score']
     .map((slug) => games.find((game) => game.slug === slug))
-    .filter((game) => game?.coverImage)
+    .filter((game) => game?.coverImage && game?.media?.previewVideo)
   if (featured.length < 2) return
+
+  // Preload all cover images upfront so switches are immediate without waiting
+  featured.forEach((game) => {
+    const img = new Image()
+    img.src = game.coverImage
+  })
 
   let currentImage = slides[0]
   let nextImage = slides[1]
   const caption = link.querySelector('.hero-art-caption strong')
   const count = link.querySelector('.hero-slide-count')
+
+  const insetLink = document.querySelector('.hero-art-inset')
+  const insetVideos = insetLink?.querySelectorAll('.hero-inset-video')
+  const insetCover = insetLink?.querySelector('.hero-inset-cover')
+  let currentVideo = insetVideos?.[0]
+  let nextVideo = insetVideos?.[1]
+
   let index = 0
   let timer
   let paused = false
@@ -375,28 +417,55 @@ function setupHeroSlideshow() {
     if (paused) return
     const nextIndex = (index + 1) % featured.length
     const game = featured[nextIndex]
-    const imageUrl = game.coverImage
-    const preload = new Image()
-    preload.onload = () => {
-      nextImage.src = imageUrl
-      nextImage.alt = `${game.title} gameplay screenshot`
-      nextImage.classList.add('is-active')
-      currentImage.classList.remove('is-active')
-      link.href = `#/games/${game.slug}`
-      link.setAttribute('aria-label', `View ${game.title} gameplay screenshots`)
-      caption.textContent = game.title
-      count.textContent = `${String(nextIndex + 1).padStart(2, '0')} / ${String(featured.length).padStart(2, '0')}`
-      index = nextIndex
-      ;[currentImage, nextImage] = [nextImage, currentImage]
+
+    // Advance large image slide
+    nextImage.src = game.coverImage
+    nextImage.alt = `${game.title} gameplay screenshot`
+    nextImage.classList.add('is-active')
+    currentImage.classList.remove('is-active')
+    link.href = `#/games/${game.slug}`
+    link.setAttribute('aria-label', `View ${game.title} gameplay screenshots`)
+    if (caption) caption.textContent = game.title
+    if (count) count.textContent = `${String(nextIndex + 1).padStart(2, '0')} / ${String(featured.length).padStart(2, '0')}`
+
+    // Advance small inset video & cover
+    if (insetLink && nextVideo && currentVideo) {
+      insetLink.href = `#/games/${game.slug}`
+      insetLink.setAttribute('aria-label', `Watch ${game.title} gameplay preview`)
+      if (insetCover) insetCover.src = game.coverImage
+
+      const videoUrl = asset(game.media?.previewVideo ?? '')
+      if (videoUrl) {
+        nextVideo.src = videoUrl
+        nextVideo.currentTime = 0
+        const playPromise = nextVideo.play()
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {})
+        }
+        nextVideo.classList.add('is-active')
+        currentVideo.classList.remove('is-active')
+        ;[currentVideo, nextVideo] = [nextVideo, currentVideo]
+      }
     }
-    preload.src = imageUrl
+
+    index = nextIndex
+    ;[currentImage, nextImage] = [nextImage, currentImage]
   }
-  const start = () => { clearInterval(timer); timer = window.setInterval(advance, 4600) }
+
+  const start = () => { clearInterval(timer); timer = window.setInterval(advance, 2600) }
   const stop = () => clearInterval(timer)
-  link.addEventListener('pointerenter', (event) => { if (event.pointerType === 'mouse') { paused = true; stop() } })
-  link.addEventListener('pointerleave', () => { paused = false; start() })
-  link.addEventListener('focus', () => { paused = true; stop() })
-  link.addEventListener('blur', () => { paused = false; start() })
+
+  const addPauseHandlers = (element) => {
+    if (!element) return
+    element.addEventListener('pointerenter', (event) => { if (event.pointerType === 'mouse') { paused = true; stop() } })
+    element.addEventListener('pointerleave', () => { paused = false; start() })
+    element.addEventListener('focus', () => { paused = true; stop() })
+    element.addEventListener('blur', () => { paused = false; start() })
+  }
+
+  addPauseHandlers(link)
+  addPauseHandlers(insetLink)
+
   start()
 }
 
@@ -478,7 +547,7 @@ function setupCardTilt(root = document) {
 }
 
 function setupScrollReveals(root = document) {
-  const targets = root.querySelectorAll('.game-card, .about-section, .experience-strip, .detail-page > section:not(.detail-hero)')
+  const targets = root.querySelectorAll('.game-card, .engine-section, .about-section, .experience-strip, .detail-page > section:not(.detail-hero)')
   if (!targets.length) return
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
     targets.forEach((target) => target.classList.add('is-visible'))
@@ -696,9 +765,6 @@ function render() {
   const section = hash.match(/^section\/(work|about|experience)$/)
   if (section) {
     if (!document.querySelector('.home-page')) renderHome()
-    if (section[1] === 'about' || section[1] === 'experience') {
-      window.expandAllGames?.()
-    }
     requestAnimationFrame(() => document.getElementById(section[1])?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
     window.updateParallax?.()
     return
